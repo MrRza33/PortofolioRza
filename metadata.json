@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Vercel-style Admin CMS",
+  "description": "A comprehensive, Vercel-like admin panel for Next.js with authentication, CRUD operations, and database management.",
+  "requestFramePermissions": []
+}
