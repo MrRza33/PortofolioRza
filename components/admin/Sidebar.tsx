@@ -1,7 +1,8 @@
-
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -29,13 +30,7 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  // Fallback for pathname in preview environment if hook fails
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/admin';
-
-  const handleSignOut = () => {
-    // Simulate sign out redirect
-    window.history.pushState({}, "", "/admin/login");
-  };
+  const pathname = usePathname();
 
   return (
     <aside className="w-64 h-screen sticky top-0 border-r border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col">
@@ -51,10 +46,10 @@ export default function Sidebar() {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href));
           
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className={cn(
@@ -66,14 +61,14 @@ export default function Sidebar() {
             >
               <Icon size={18} className={isActive ? "text-black dark:text-white" : "text-gray-400 dark:text-gray-500"} />
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </nav>
 
       <div className="p-4 border-t border-gray-100 dark:border-zinc-800">
         <button
-          onClick={handleSignOut}
+          onClick={() => signOut({ callbackUrl: "/admin/login" })}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full transition-colors"
         >
           <LogOut size={18} />

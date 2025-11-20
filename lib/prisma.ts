@@ -1,34 +1,37 @@
+import bcrypt from "bcryptjs";
 
-// Mock PrismaClient to fix "no exported member" error when client is not generated
+// Mock PrismaClient locally since @prisma/client might not be generated in this environment
 class PrismaClient {
   constructor(public options?: any) {}
-  
+
   get user() {
     return {
-      findUnique: async (args: any) => null,
-      upsert: async (args: any) => null,
-      create: async (args: any) => null,
-      update: async (args: any) => null,
+      findUnique: async (args: { where: { email: string } }) => {
+        // Mock user for login: admin@example.com / Admin123!
+        if (args.where.email === "admin@example.com") {
+          const hashedPassword = bcrypt.hashSync("Admin123!", 10);
+          return {
+            id: "1",
+            email: "admin@example.com",
+            name: "Admin User",
+            password: hashedPassword,
+            role: "admin",
+          };
+        }
+        return null;
+      },
     };
-  }
-
-  $disconnect() {
-    return Promise.resolve();
   }
 }
 
-// Handle global scoping for Prisma to prevent multiple instances in development
-// Using globalThis is safer for isomorphic/browser environments
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
 export const prisma =
-  globalForPrisma.prisma ||
+  globalForPrisma.prisma ??
   new PrismaClient({
     log: ["query"],
   });
 
-// Only assign to global in non-production environments
-// Check for process.env to avoid crashing in pure browser previews where process is undefined
-if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

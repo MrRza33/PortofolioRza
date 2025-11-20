@@ -1,29 +1,38 @@
-
 "use client";
 
 import React, { useState } from "react";
 import { Lock, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-    if (email === "admin@example.com" && password === "Admin123!") {
-      // Simulate successful login
-      window.history.pushState({}, "", "/admin");
-    } else {
-      setError("Invalid email or password. Try admin@example.com / Admin123!");
+      if (result?.error) {
+        setError("Invalid credentials.");
+        setLoading(false);
+      } else {
+        router.push("/admin");
+      }
+    } catch (err) {
+      setError("Something went wrong.");
       setLoading(false);
     }
   };
@@ -95,12 +104,6 @@ export default function LoginPage() {
             {loading ? <Loader2 className="animate-spin" size={18} /> : "Sign In"}
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-400">
-            Hint: admin@example.com / Admin123!
-          </p>
-        </div>
       </motion.div>
     </div>
   );
